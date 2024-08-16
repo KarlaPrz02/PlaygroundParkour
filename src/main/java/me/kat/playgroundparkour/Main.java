@@ -3,37 +3,34 @@ package me.kat.playgroundparkour;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.Location;
-import me.kat.playgroundparkour.ParkourManager;
 
-
-public class Main extends JavaPlugin {
+public class Main extends JavaPlugin implements Listener {
 
     private ParkourManager parkourManager;
 
     @Override
     public void onEnable() {
-        // Save config if not exists
         saveDefaultConfig();
-
-        // Start ParkourPlugin
         parkourManager = new ParkourManager(this);
-
-        getLogger().info("PlaygroundParkour enable.");
+        getServer().getPluginManager().registerEvents(this, this);
+        getLogger().info("ParkourPlugin enable.");
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("PlaygroundParkour disable.");
+        getLogger().info("ParkourPlugin disable.");
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (command.getName().equalsIgnoreCase("parkour")) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage("This command can only be executed by a player!.");
+                sender.sendMessage("This command can only be executed by a player.");
                 return true;
             }
 
@@ -56,32 +53,32 @@ public class Main extends JavaPlugin {
                         parkourManager.setStartLocation(player.getLocation());
                         player.sendMessage("Start point of the parkour added.");
                     } else {
-                        player.sendMessage("You don't have permission to start the parkour.");
+                        player.sendMessage("You don`t have permissions to use this command.");
                     }
                     break;
                 case "setend":
                     if (player.hasPermission("parkour.admin")) {
                         parkourManager.setEndLocation(player.getLocation());
-                        player.sendMessage("End point of the parkour added.");
+                        player.sendMessage("Finish point of the parkour added.");
                     } else {
-                        player.sendMessage("You don't have permission to start the parkour.");
+                        player.sendMessage("You don`t have permissions to use this command.");
                     }
                     break;
                 case "setcheckpoint":
                     if (player.hasPermission("parkour.admin")) {
                         if (args.length < 2) {
-                            player.sendMessage("You need to specify the number of checkpoints. Use: /parkour setcheckpoint <number>");
+                            player.sendMessage("You need to specify the number of the checkpoint. Use: /parkour setcheckpoint <number>");
                         } else {
                             try {
                                 int checkpointNumber = Integer.parseInt(args[1]);
                                 parkourManager.setCheckpointLocation(checkpointNumber, player.getLocation());
                                 player.sendMessage("Checkpoint " + checkpointNumber + " added.");
                             } catch (NumberFormatException e) {
-                                player.sendMessage("The number of checkpoint needs to be an integer.");
+                                player.sendMessage("The checkpoint number must be an integer.");
                             }
                         }
                     } else {
-                        player.sendMessage("You don't have permission to specify the number of checkpoints.");
+                        player.sendMessage("You don`t have permissions to use this command.");
                     }
                     break;
                 default:
@@ -95,7 +92,25 @@ public class Main extends JavaPlugin {
         return false;
     }
 
-    public ParkourManager getParkourManager() {
-        return parkourManager;
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        Location to = event.getTo();
+
+        // Verifica si el jugador ha caído a la altura 0 o por debajo
+        if (to.getY() <= 0) {
+            Location lastCheckpoint = parkourManager.getLastCheckpoint(player);
+
+            if (lastCheckpoint != null) {
+                player.teleport(lastCheckpoint);
+                player.sendMessage("You have been teleported to your last checkpoint.");
+            } else {
+                Location startLocation = parkourManager.getStartLocation();
+                if (startLocation != null) {
+                    player.teleport(startLocation);
+                    player.sendMessage("No checkpoint found, teleported to start.");
+                }
+            }
+        }
     }
 }
