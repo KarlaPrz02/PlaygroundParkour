@@ -1,0 +1,14 @@
+name: PlaygroundParkour
+version: 1.0
+main: me.kat.playgroundparkour.PlaygroundParkour
+api-version: 1.8
+description: A plugin for manage parkours in a server.
+author: KatPrz02
+commands:
+  parkour:
+    description: Command usage.
+    usage: /<command> <start|stop|setstart|setend|setcheckpoint>
+    permissions:
+      parkour.admin:
+        description: Add permms to admins to configure points of start, end and checkpoints in the parkour.
+        default: op
