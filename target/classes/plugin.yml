@@ -1,6 +1,6 @@
 name: PlaygroundParkour
 version: 1.0
-main: me.kat.playgroundparkour.PlaygroundParkour
+main: me.kat.playgroundparkour.Main
 api-version: 1.8
 description: A plugin for manage parkours in a server.
 author: KatPrz02
